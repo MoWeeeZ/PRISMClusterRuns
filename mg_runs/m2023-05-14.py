@@ -100,7 +100,7 @@ def main():
     gen = x_xy.algorithms.batch_generator(gen, 32)
 
     rnno = rnno_v2(x_xy.io.load_sys_from_str(dustin_exp_xml))
-    train(gen, 1500, rnno, loggers=[], reduce=reduce, percentile=percentile)  # NeptuneLogger()
+    train(gen, 1500, rnno, loggers=[NeptuneLogger()], reduce=reduce, percentile=percentile)  #
 
 
 if __name__ == "__main__":
