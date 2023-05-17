@@ -1,5 +1,6 @@
 from sys import argv
 import os
+import argparse
 
 import jax
 import jax.numpy as jnp
@@ -85,11 +86,23 @@ def finalize_fn(key, q, x, sys):
 
 
 def main():
-    reduce = argv[1]
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("reduce")
+
+    parser.add_argument("--percentile", type=int)
+
+    parser.add_argument("--seed", type=int, default=0)
+
+    args = parser.parse_args()
+
+    reduce = args.reduce
+
     if reduce == "mean":
         percentile = None
     elif reduce == "percentile":
-        percentile = int(argv[2])
+        percentile = args.percentile
         if not 0 <= percentile <= 100:
             raise ValueError(f"Percentile must be between 0 and 100, not {percentile}")
     else:
@@ -106,7 +119,15 @@ def main():
     gen = x_xy.algorithms.batch_generator(gen, batch_size)
 
     rnno = rnno_v2(x_xy.io.load_sys_from_str(dustin_exp_xml))
-    train(gen, 1500, rnno, loggers=[NeptuneLogger()], reduce=reduce, percentile=percentile)  #
+
+    seed = args.seed
+
+    key = jax.random.PRNGKey(0)
+
+    key_network, key_generator = jax.random.split(key)
+
+    # 
+    train(gen, 1500, rnno, loggers=[NeptuneLogger()], key_network=key_network, key_generator=key_generator, reduce=reduce, percentile=percentile)
 
 
 if __name__ == "__main__":
