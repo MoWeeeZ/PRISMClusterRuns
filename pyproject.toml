@@ -1,6 +1,12 @@
 [project]
 name = "mg-runs"
 version = "0.1.0"
+dependencies = [
+    "jax",
+    "neural_networks @ git+https://github.com/MoWeeeZ/neural_networks.git@perc-loss",
+    "x_xy @ git+https://MoWeeeZ/x_xy_v2"
+]
+
 
 [tool.black]
 line-length = 120
