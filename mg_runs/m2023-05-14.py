@@ -122,12 +122,16 @@ def main():
 
     seed = args.seed
 
-    key = jax.random.PRNGKey(0)
+    key = jax.random.PRNGKey(seed)
 
     key_network, key_generator = jax.random.split(key)
 
+    neptune_logger = NeptuneLogger()
+
+    neptune_logger.log(dict(seed=seed))
+
     # 
-    train(gen, 1500, rnno, loggers=[NeptuneLogger()], key_network=key_network, key_generator=key_generator, reduce=reduce, percentile=percentile)
+    train(gen, 1500, rnno, loggers=[neptune_logger], key_network=key_network, key_generator=key_generator, reduce=reduce, percentile=percentile)
 
 
 if __name__ == "__main__":
