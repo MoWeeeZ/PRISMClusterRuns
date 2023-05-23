@@ -127,7 +127,7 @@ def main():
 
     neptune_logger = NeptuneLogger()
 
-    neptune_logger.log(dict(seed=seed, reduce=reduce, percentile=percentile))
+    neptune_logger.log(dict(seed=seed, reduce=reduce, percentile=percentile, tag="mean_perc_1"))
 
     # 
     train(gen, 1500, rnno, loggers=[neptune_logger], key_network=key_network, key_generator=key_generator, reduce=reduce, percentile=percentile)
