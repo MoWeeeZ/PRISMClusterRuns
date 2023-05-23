@@ -95,6 +95,8 @@ def main():
 
     parser.add_argument("--seed", type=int, default=0)
 
+    parser.add_argument("--batchsize", type=int)
+
     args = parser.parse_args()
 
     reduce = args.reduce
@@ -108,10 +110,7 @@ def main():
     else:
         raise ValueError(f"Invalid reduce {reduce}")
 
-    batch_size = int(os.environ.get("BATCH_SIZE"))
-
-    if batch_size is None:
-        raise Exception("BATCH_SIZE environment variable is not defined")
+    batch_size = args.batchsize
 
     sys = x_xy.io.load_sys_from_str(three_seg_seg2)
     config = x_xy.algorithms.RCMG_Config(t_min=0.05, t_max=0.3, dang_min=0.1, dang_max=3.0, dpos_max=0.3)
