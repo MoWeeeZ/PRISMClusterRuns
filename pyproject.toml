@@ -3,8 +3,8 @@ name = "mg-runs"
 version = "0.1.0"
 dependencies = [
     "jax",
-    "neural_networks @ git+https://github.com/MoWeeeZ/neural_networks.git@perc-loss",
-    "x_xy @ git+https://MoWeeeZ/x_xy_v2"
+    "neural_networks @ git+https://github.com/MoWeeeZ/neural_networks.git@cluster",
+    "x_xy @ git+https://MoWeeeZ/x_xy_v2.git@cluster"
 ]
 
 
