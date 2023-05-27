@@ -86,7 +86,6 @@ def finalize_fn(key, q, x, sys):
 
 
 def main():
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument("reduce")
@@ -130,8 +129,17 @@ def main():
 
     neptune_logger.log(dict(seed=seed))
 
-    # 
-    train(gen, 1500, rnno, loggers=[neptune_logger], key_network=key_network, key_generator=key_generator, reduce=reduce, percentile=percentile)
+    #
+    train(
+        gen,
+        1500,
+        rnno,
+        loggers=[neptune_logger],
+        key_network=key_network,
+        key_generator=key_generator,
+        reduce=reduce,
+        percentile=percentile,
+    )
 
 
 if __name__ == "__main__":
