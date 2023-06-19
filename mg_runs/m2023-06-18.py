@@ -88,7 +88,7 @@ def finalize_fn(key, q, x, sys):
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument("--temperature", type=float, default=None)
 
     parser.add_argument("--seed", type=int, default=0)
 
@@ -122,10 +122,12 @@ def main():
 
     loggers = []
 
+    beta = 1 / temperature if temperature is not None else 0.0
+
     if not debug:
         neptune_logger = NeptuneLogger()
 
-        neptune_logger.log(dict(seed=seed, temperature=temperature, tag="mean_perc_2"))
+        neptune_logger.log(dict(seed=seed, beta=beta, tag="mean_perc_2"))
 
         loggers.append(neptune_logger)
 
@@ -137,7 +139,7 @@ def main():
         loggers=loggers,
         key_network=key_network,
         key_generator=key_generator,
-        temperature=temperature,
+        beta=beta,
     )
 
 
