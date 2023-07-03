@@ -1,5 +1,3 @@
-from sys import argv
-import os
 import argparse
 
 import jax
@@ -127,7 +125,7 @@ def main():
     if not debug:
         neptune_logger = NeptuneLogger()
 
-        neptune_logger.log(dict(seed=seed, beta=beta, tag="mean_perc_2"))
+        neptune_logger.log(dict(seed=seed, beta=beta, tag="loss-temperature-cluster"))
 
         loggers.append(neptune_logger)
 
