@@ -2,6 +2,7 @@ import argparse
 
 import jax
 import jax.numpy as jnp
+
 import x_xy
 from neural_networks.logging import NeptuneLogger
 from neural_networks.rnno import dustin_exp_xml, rnno_v2, train
@@ -120,12 +121,16 @@ def main():
 
     loggers = []
 
-    beta = 1 / temperature if temperature is not None else 0.0
+    beta = 1 / temperature if temperature is not None else None
 
     if not debug:
         neptune_logger = NeptuneLogger()
 
-        neptune_logger.log(dict(seed=seed, beta=beta, tag="loss-temperature-cluster"))
+        neptune_logger.run["sys/tags"].add(["softmax_1"])
+
+        neptune_logger.log(
+            dict(seed=seed, beta=beta if beta is not None else float("nan"), tag="loss-temperature-cluster")
+        )
 
         loggers.append(neptune_logger)
 
