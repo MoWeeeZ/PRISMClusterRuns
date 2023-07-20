@@ -1,10 +1,10 @@
 [project]
 name = "mg_runs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
     "jax",
+    "x_xy @ git+https://github.com/MoWeeeZ/x_xy_v2.git@cluster",
     "neural_networks @ git+https://github.com/MoWeeeZ/neural_networks.git@cluster",
-    # "x_xy @ git+https://github.com/MoWeeeZ/x_xy_v2.git@cluster",
 ]
 
 
