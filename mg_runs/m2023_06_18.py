@@ -84,36 +84,13 @@ def finalize_fn(key, q, x, sys):
     return X, y
 
 
-def main():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--temperature", type=float, default=None)
-
-    parser.add_argument("--seed", type=int, default=0)
-
-    parser.add_argument("--batchsize", type=int)
-
-    parser.add_argument("--debug", action="store_true", default=False)
-
-    args = parser.parse_args()
-
-    debug = args.debug
-
-    batch_size = args.batchsize
-
-    if batch_size is None:
-        raise Exception("batch size not set")
-
-    temperature = args.temperature
-
+def run(batch_size: int, temperature: float | None, *, seed: int = 0, debug: bool = False):
     sys = x_xy.io.load_sys_from_str(three_seg_seg2)
     config = x_xy.algorithms.RCMG_Config(t_min=0.05, t_max=0.3, dang_min=0.1, dang_max=3.0, dpos_max=0.3)
     gen = x_xy.algorithms.build_generator(sys, config, setup_fn_seg2, finalize_fn)
     gen = x_xy.algorithms.batch_generator(gen, batch_size)
 
     rnno = rnno_v2(x_xy.io.load_sys_from_str(dustin_exp_xml))
-
-    seed = args.seed
 
     key = jax.random.PRNGKey(seed)
 
@@ -142,6 +119,33 @@ def main():
         key_generator=key_generator,
         beta=beta,
     )
+
+
+def main():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--temperature", type=float, default=None)
+
+    parser.add_argument("--seed", type=int, default=0)
+
+    parser.add_argument("--batchsize", type=int)
+
+    parser.add_argument("--debug", action="store_true", default=False)
+
+    args = parser.parse_args()
+
+    debug = args.debug
+
+    batch_size = args.batchsize
+
+    if batch_size is None:
+        raise Exception("batch size not set")
+
+    temperature = args.temperature
+
+    seed = args.seed
+
+    run(batch_size, seed=seed, temperature=temperature, debug=debug)
 
 
 if __name__ == "__main__":
