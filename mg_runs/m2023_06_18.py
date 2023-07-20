@@ -84,7 +84,7 @@ def finalize_fn(key, q, x, sys):
     return X, y
 
 
-def run(batch_size: int, temperature: float | None, *, seed: int = 0, debug: bool = False):
+def run(batch_size: int, beta: float | None, *, seed: int = 0, debug: bool = False):
     sys = x_xy.io.load_sys_from_str(three_seg_seg2)
     config = x_xy.algorithms.RCMG_Config(t_min=0.05, t_max=0.3, dang_min=0.1, dang_max=3.0, dpos_max=0.3)
     gen = x_xy.algorithms.build_generator(sys, config, setup_fn_seg2, finalize_fn)
@@ -97,8 +97,6 @@ def run(batch_size: int, temperature: float | None, *, seed: int = 0, debug: boo
     key_network, key_generator = jax.random.split(key)
 
     loggers = []
-
-    beta = 1 / temperature if temperature is not None else None
 
     if not debug:
         neptune_logger = NeptuneLogger()
@@ -124,7 +122,7 @@ def run(batch_size: int, temperature: float | None, *, seed: int = 0, debug: boo
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--temperature", type=float, default=None)
+    parser.add_argument("--beta", type=float, default=None)
 
     parser.add_argument("--seed", type=int, default=0)
 
@@ -141,11 +139,11 @@ def main():
     if batch_size is None:
         raise Exception("batch size not set")
 
-    temperature = args.temperature
+    beta = args.beta
 
     seed = args.seed
 
-    run(batch_size, seed=seed, temperature=temperature, debug=debug)
+    run(batch_size, seed=seed, beta=beta, debug=debug)
 
 
 if __name__ == "__main__":

@@ -1,11 +1,11 @@
 import argparse
 
-from . import m2023_06_18
+from . import m2023_06_18 as current_run
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--temperature", type=float, default=None)
+    parser.add_argument("--beta", type=float, default=None)
 
     parser.add_argument("--seed", type=int, default=0)
 
@@ -22,8 +22,10 @@ if __name__ == "__main__":
     if batch_size is None:
         raise Exception("batch size not set")
 
-    temperature = args.temperature
+    beta = args.beta
 
     seed = args.seed
 
-    m2023_06_18.run(batch_size, seed=seed, temperature=temperature, debug=debug)
+    print(f"Starting run {current_run.__name__} with batch size {batch_size}, seed {seed}, and beta {beta}" + " (debug)" if debug else "")
+
+    current_run.run(batch_size, seed=seed, beta=beta, debug=debug)
