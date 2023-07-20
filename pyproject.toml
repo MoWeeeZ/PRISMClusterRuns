@@ -1,5 +1,5 @@
 [project]
-name = "mg-runs"
+name = "mg_runs"
 version = "0.1.0"
 dependencies = [
     "jax",
