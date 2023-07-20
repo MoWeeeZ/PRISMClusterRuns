@@ -127,10 +127,8 @@ def main():
         neptune_logger = NeptuneLogger()
 
         neptune_logger.run["sys/tags"].add(["softmax_1"])
-
-        neptune_logger.log(
-            dict(seed=seed, beta=beta if beta is not None else float("nan"), tag="loss-temperature-cluster")
-        )
+        neptune_logger.run["beta"] = beta if beta is not None else float("nan")
+        neptune_logger.run["seed"] = seed
 
         loggers.append(neptune_logger)
 
