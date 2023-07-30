@@ -124,8 +124,9 @@ def run(batch_size: int, beta: float | None = None, *, iterations: int = 1500, s
         neptune_logger = NeptuneLogger()
 
         neptune_logger.run["sys/tags"].add(["softmax_2"])
-        neptune_logger.run["beta"] = beta if beta is not None else float("nan")
         neptune_logger.run["seed"] = seed
+
+        neptune_logger.run["beta"] = beta or "None"
 
         loggers.append(neptune_logger)
 
