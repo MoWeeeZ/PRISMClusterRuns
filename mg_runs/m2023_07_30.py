@@ -106,7 +106,7 @@ class LogSoftmaxMatrics(TrainingLoopCallback):
                     logger.run[f"softmax_top_n/top{perc}_std"].append(std)
 
 
-def run(batch_size: int, beta: float | None, *, iterations: int = 1500, seed: int = 0, debug: bool = False):
+def run(batch_size: int, beta: float | None = None, *, iterations: int = 1500, seed: int = 0, debug: bool = False):
     sys = x_xy.io.load_sys_from_str(three_seg_seg2)
     config = x_xy.algorithms.RCMG_Config(t_min=0.05, t_max=0.3, dang_min=0.1, dang_max=3.0, dpos_max=0.3)
     gen = x_xy.algorithms.build_generator(sys, config, setup_fn_seg2, finalize_fn)
