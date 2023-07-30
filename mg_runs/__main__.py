@@ -1,15 +1,15 @@
 import argparse
 
-from . import m2023_06_18 as current_run
+from . import m2023_07_30 as current_run
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--beta", type=float, default=None)
+    parser.add_argument("--batchsize", type=int, required=True, dest="batch_size")
 
-    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--beta", type=float)
 
-    parser.add_argument("--batchsize", type=int)
+    parser.add_argument("--seed", type=int)
 
     parser.add_argument("--debug", action="store_true", default=False)
 
@@ -26,6 +26,13 @@ if __name__ == "__main__":
 
     seed = args.seed
 
-    print(f"Starting run {current_run.__name__} with batch size {batch_size}, seed {seed}, and beta {beta}" + " (debug)" if debug else "")
+    print(
+        f"Starting run {current_run.__name__} with batch size {args.batch_size}, seed {args.seed}, and beta {args.beta}"
+        + " (debug)"
+        if args.debug
+        else ""
+    )
 
-    current_run.run(batch_size, seed=seed, beta=beta, debug=debug)
+    args = {key: val for key, val in vars(args).items() if val is not None}
+
+    debug_info = current_run.run(**args)
