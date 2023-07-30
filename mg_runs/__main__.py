@@ -15,24 +15,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    debug = args.debug
-
-    batch_size = args.batchsize
-
-    if batch_size is None:
-        raise Exception("batch size not set")
-
-    beta = args.beta
-
-    seed = args.seed
-
-    print(
-        f"Starting run {current_run.__name__} with batch size {args.batch_size}, seed {args.seed}, and beta {args.beta}"
-        + " (debug)"
-        if args.debug
-        else ""
-    )
-
     args = {key: val for key, val in vars(args).items() if val is not None}
+
+    print(f"Starting run {current_run.__name__} with args {args}")
 
     debug_info = current_run.run(**args)

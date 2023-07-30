@@ -158,9 +158,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.batch_size is None:
-        raise Exception("batch size not set")
-
     if args.debug:
         print(f"{args=}")
 
