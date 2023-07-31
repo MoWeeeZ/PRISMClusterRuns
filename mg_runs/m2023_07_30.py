@@ -86,7 +86,7 @@ def finalize_fn(key, q, x, sys):
     return X, y
 
 
-class LogSoftmaxMatrics(TrainingLoopCallback):
+class LogLossWeightMetrics(TrainingLoopCallback):
     def after_training_step(
         self,
         i_episode,
@@ -102,8 +102,8 @@ class LogSoftmaxMatrics(TrainingLoopCallback):
                     mean = jnp.mean(vals[-1])
                     std = jnp.std(vals[-1])
 
-                    logger.run[f"softmax_top_n/top{perc}_mean"].append(mean)
-                    logger.run[f"softmax_top_n/top{perc}_std"].append(std)
+                    logger.run[f"loss_top_n/top{perc}_mean"].append(mean)
+                    logger.run[f"loss_top_n/top{perc}_std"].append(std)
 
 
 def run(batch_size: int, beta: float | None = None, *, iterations: int = 1500, seed: int = 0, debug: bool = False):
@@ -138,7 +138,7 @@ def run(batch_size: int, beta: float | None = None, *, iterations: int = 1500, s
         key_network=key_network,
         key_generator=key_generator,
         beta=beta,
-        callbacks=[LogSoftmaxMatrics()],
+        callbacks=[LogLossWeightMetrics()],
     )
 
     return debug_info
