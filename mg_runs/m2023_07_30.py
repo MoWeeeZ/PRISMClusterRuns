@@ -102,9 +102,6 @@ class LogLossWeightMetrics(TrainingLoopCallback):
                 logger.log_key_value(f"loss_top_n/top{perc}_mean", mean)
                 logger.log_key_value(f"loss_top_n/top{perc}_std", std)
 
-            print(f"loss_top_n/top{perc}_mean: {mean}")
-            print(f"loss_top_n/top{perc}_std: {std}")
-
 
 def run(batch_size: int, beta: float | None = None, *, iterations: int = 1500, seed: int = 0, debug: bool = False):
     sys = x_xy.io.load_sys_from_str(three_seg_seg2)
