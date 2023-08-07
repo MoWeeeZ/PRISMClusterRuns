@@ -1,5 +1,4 @@
 import argparse
-from os import error
 
 import jax
 import jax.numpy as jnp
@@ -7,7 +6,7 @@ import jax.numpy as jnp
 import x_xy
 from neural_networks.logging import Logger, NeptuneLogger
 from neural_networks.rnno import dustin_exp_xml, rnno_v2, train
-from neural_networks.rnno.train import DebugInfo
+from neural_networks.rnno.train import AuxInfo
 from neural_networks.rnno.training_loop import TrainingLoopCallback
 
 three_seg_seg2 = r"""
@@ -93,17 +92,28 @@ class LogLossWeightMetrics(TrainingLoopCallback):
         i_episode,
         metrices,
         params,
-        debug_info: DebugInfo,
+        info: AuxInfo,
         sample_eval,
         loggers: list[Logger],
     ) -> None:
-        for perc, (mean, std) in debug_info.error_percs[-1].items():
+        for perc, (mean, std) in info.error_percs.items():
             for logger in loggers:
                 logger.log_key_value(f"loss_top_n/top{perc}_mean", mean)
                 logger.log_key_value(f"loss_top_n/top{perc}_std", std)
 
+            print(f"loss_top_n/top{perc}_mean: {mean}")
+            print(f"loss_top_n/top{perc}_std: {std}")
 
-def run(batch_size: int, beta: float | None = None, *, iterations: int = 1500, seed: int = 0, debug: bool = False):
+
+def run(
+    batch_size: int,
+    beta: float | None = None,
+    *,
+    iterations: int = 1500,
+    seed: int = 0,
+    debug: bool = False,
+    profile: bool = False,
+):
     sys = x_xy.io.load_sys_from_str(three_seg_seg2)
     config = x_xy.algorithms.RCMG_Config(t_min=0.05, t_max=0.3, dang_min=0.1, dang_max=3.0, dpos_max=0.3)
     gen = x_xy.algorithms.build_generator(sys, config, setup_fn_seg2, finalize_fn)
@@ -136,12 +146,13 @@ def run(batch_size: int, beta: float | None = None, *, iterations: int = 1500, s
         key_generator=key_generator,
         beta=beta,
         callbacks=[LogLossWeightMetrics()],
+        profile=profile,
     )
 
     return debug_info
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--batchsize", type=int, required=True, dest="batch_size")
@@ -152,13 +163,21 @@ if __name__ == "__main__":
 
     parser.add_argument("--iterations", type=int)
 
-    parser.add_argument("--debug", action="store_true", default=False)
+    parser.add_argument("--debug", action="store_true")
+
+    parser.add_argument("--profile", action="store_true")
 
     args = parser.parse_args()
 
-    if args.debug:
-        print(f"{args=}")
-
     args = {key: val for key, val in vars(args).items() if val is not None}
 
-    debug_info = run(**args)
+    if args["profile"]:
+        args["debug"] = True
+
+    print(f"{args=}")
+
+    return run(**args)
+
+
+if __name__ == "__main__":
+    main()
