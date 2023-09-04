@@ -87,6 +87,37 @@ def finalize_fn(key, q, x, sys):
 
 
 class LogLossWeightMetrics(TrainingLoopCallback):
+    @staticmethod
+    @jax.jit
+    def top_n(losses, perc):
+        losses_normed = losses / losses.sum(axis=-1, keepdims=True)
+
+        losses_sorted = jnp.sort(losses_normed, axis=-1)[..., ::-1]
+
+        losses_cumsums = jnp.cumsum(losses_sorted, axis=-1)
+
+        n = jnp.argmax(losses_cumsums >= perc, axis=-1)
+
+        return n
+
+    @staticmethod
+    def error_perc(error_tree):
+        error_percs = {}
+
+        for perc in [50, 90, 95, 99]:
+            tree = jax.tree_map(lambda a: LogLossWeightMetrics.top_n(a, perc / 100), error_tree)
+
+            leafs, _ = jax.tree_util.tree_flatten(tree)
+
+            arr = jnp.asarray(leafs)
+
+            mean = jnp.mean(arr)
+            std = jnp.std(arr)
+
+            error_percs[perc] = (mean, std)
+
+        return error_percs
+
     def after_training_step(
         self,
         i_episode,
@@ -96,7 +127,9 @@ class LogLossWeightMetrics(TrainingLoopCallback):
         sample_eval,
         loggers: list[Logger],
     ) -> None:
-        for perc, (mean, std) in info.error_percs.items():
+        error_percs = LogLossWeightMetrics.error_percs(info.error_trees)
+
+        for perc, (mean, std) in error_percs.items():
             for logger in loggers:
                 logger.log_key_value(f"loss_top_n/top{perc}_mean", mean)
                 logger.log_key_value(f"loss_top_n/top{perc}_std", std)
