@@ -4,6 +4,7 @@ import jax
 import jax.numpy as jnp
 
 import x_xy
+import tree_utils
 from neural_networks.logging import Logger, NeptuneLogger
 from neural_networks.rnno import dustin_exp_xml, rnno_v2, train
 from neural_networks.rnno.train import AuxInfo
@@ -127,12 +128,24 @@ class LogLossWeightMetrics(TrainingLoopCallback):
         sample_eval,
         loggers: list[Logger],
     ) -> None:
-        error_percs = LogLossWeightMetrics.error_percs(info.error_trees)
+        error_trees = info.error_trees
+        weighted_error_trees = info.weighted_error_trees
 
-        for perc, (mean, std) in error_percs.items():
-            for logger in loggers:
-                logger.log_key_value(f"loss_top_n/top{perc}_mean", mean)
-                logger.log_key_value(f"loss_top_n/top{perc}_std", std)
+        mean_error = jnp.mean(tree_utils.batch_concat(error_trees, 0))
+
+        error_percs = LogLossWeightMetrics.error_percs(error_trees)
+        weighted_error_percs = LogLossWeightMetrics.error_percs(weighted_error_trees)
+
+        for logger in loggers:
+            logger.log_key_value("softmax/mean_error", mean_error)
+
+            for perc, (mean, std) in error_percs.items():
+                logger.log_key_value(f"softmax/top{perc}_mean", mean)
+                logger.log_key_value(f"softmax/top{perc}_std", std)
+
+            for perc, (mean, std) in weighted_error_percs.items():
+                logger.log_key_value(f"softmax/top{perc}_weighted_mean", mean)
+                logger.log_key_value(f"softmax/top{perc}_weighted_std", std)
 
 
 def run(
