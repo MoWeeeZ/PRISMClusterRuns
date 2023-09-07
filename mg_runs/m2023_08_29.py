@@ -222,7 +222,7 @@ def run(
         key_network=key_network,
         key_generator=key_generator,
         beta=beta,
-        callbacks=[LogLossWeightMetrics(), DustinExperiment()],
+        callbacks=[LogLossWeightMetrics(), DustinExperiment(rnno)],
         profile=profile,
     )
 
