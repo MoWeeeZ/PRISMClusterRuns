@@ -2,10 +2,13 @@ import argparse
 
 import jax
 import jax.numpy as jnp
+import tree_utils
 
 import x_xy
-import tree_utils
 from neural_networks.logging import Logger, NeptuneLogger
+from neural_networks.main.neural_networks.rnno.training_loop_callbacks import (
+    DustinExperiment,
+)
 from neural_networks.rnno import dustin_exp_xml, rnno_v2, train
 from neural_networks.rnno.train import AuxInfo
 from neural_networks.rnno.training_loop import TrainingLoopCallback
@@ -71,7 +74,9 @@ def finalize_fn_imu_data(key, q, x, sys):
     X = {}
     for imu, seg in imu_seg_attachment.items():
         key, consume = jax.random.split(key)
-        X[seg] = x_xy.algorithms.imu(x.take(sys.name_to_idx(imu), 1), sys.gravity, sys.dt, consume, True)
+        X[seg] = x_xy.algorithms.imu(
+            x.take(sys.name_to_idx(imu), 1), sys.gravity, sys.dt, consume, True
+        )
     return X
 
 
@@ -88,6 +93,8 @@ def finalize_fn(key, q, x, sys):
 
 
 class LogLossWeightMetrics(TrainingLoopCallback):
+    percentiles: list[int] = [50, 90, 95, 99]
+
     @staticmethod
     @jax.jit
     def top_n(losses, perc):
@@ -102,11 +109,13 @@ class LogLossWeightMetrics(TrainingLoopCallback):
         return n
 
     @staticmethod
-    def error_percs(error_tree):
+    def top_n_percentiles(error_trees):
         error_percs = {}
 
-        for perc in [50, 90, 95, 99]:
-            tree = jax.tree_map(lambda a: LogLossWeightMetrics.top_n(a, perc / 100), error_tree)
+        for q in LogLossWeightMetrics.percentiles:
+            tree = jax.tree_map(
+                lambda a: LogLossWeightMetrics.top_n(a, q / 100), error_trees
+            )
 
             leafs, _ = jax.tree_util.tree_flatten(tree)
 
@@ -115,9 +124,22 @@ class LogLossWeightMetrics(TrainingLoopCallback):
             mean = jnp.mean(arr)
             std = jnp.std(arr)
 
-            error_percs[perc] = (mean, std)
+            error_percs[q] = (mean, std)
 
         return error_percs
+
+    @staticmethod
+    def error_percentiles(error_trees):
+        losses = tree_utils.batch_concat(error_trees, 0)
+
+        mean_loss = jnp.mean(losses)
+
+        percentiles = {}
+
+        for q in LogLossWeightMetrics.percentiles:
+            percentiles[q] = jnp.percentile(losses, q)
+
+        return mean_loss, percentiles
 
     def after_training_step(
         self,
@@ -131,21 +153,33 @@ class LogLossWeightMetrics(TrainingLoopCallback):
         error_trees = info.error_trees
         weighted_error_trees = info.weighted_error_trees
 
-        mean_error = jnp.mean(tree_utils.batch_concat(error_trees, 0))
+        percentile_top_ns = LogLossWeightMetrics.error_percentiles(error_trees)
 
-        error_percs = LogLossWeightMetrics.error_percs(error_trees)
-        weighted_error_percs = LogLossWeightMetrics.error_percs(weighted_error_trees)
+        mean_loss, loss_percentiles = LogLossWeightMetrics.error_percentiles(
+            error_trees
+        )
+
+        (
+            weighted_mean_loss,
+            weighted_loss_percentiles,
+        ) = LogLossWeightMetrics.error_percentiles(weighted_error_trees)
 
         for logger in loggers:
-            logger.log_key_value("softmax/mean_error", mean_error)
+            logger.log_key_value("softmax/mean_error", mean_loss)
 
-            for perc, (mean, std) in error_percs.items():
-                logger.log_key_value(f"softmax/top{perc}_mean", mean)
-                logger.log_key_value(f"softmax/top{perc}_std", std)
+            for q, loss_percentile in loss_percentiles.items():
+                logger.log_key_value(f"softmax/loss_percentile{q}", loss_percentile)
 
-            for perc, (mean, std) in weighted_error_percs.items():
-                logger.log_key_value(f"softmax/top{perc}_weighted_mean", mean)
-                logger.log_key_value(f"softmax/top{perc}_weighted_std", std)
+            logger.log_key_value("softmax/weighted_mean_error", weighted_mean_loss)
+
+            for q, loss_percentile in weighted_loss_percentiles.items():
+                logger.log_key_value(
+                    f"softmax/weighted_loss_percentile{q}", loss_percentile
+                )
+
+            for q, (mean, std) in percentile_top_ns.items():
+                logger.log_key_value(f"softmax/top{q}_mean", mean)
+                logger.log_key_value(f"softmax/top{q}_std", std)
 
 
 def run(
@@ -158,7 +192,9 @@ def run(
     profile: bool = False,
 ):
     sys = x_xy.io.load_sys_from_str(three_seg_seg2)
-    config = x_xy.algorithms.RCMG_Config(t_min=0.05, t_max=0.3, dang_min=0.1, dang_max=3.0, dpos_max=0.3)
+    config = x_xy.algorithms.RCMG_Config(
+        t_min=0.05, t_max=0.3, dang_min=0.1, dang_max=3.0, dpos_max=0.3
+    )
     gen = x_xy.algorithms.build_generator(sys, config, setup_fn_seg2, finalize_fn)
     gen = x_xy.algorithms.batch_generator(gen, batch_size)
 
@@ -188,7 +224,7 @@ def run(
         key_network=key_network,
         key_generator=key_generator,
         beta=beta,
-        callbacks=[LogLossWeightMetrics()],
+        callbacks=[LogLossWeightMetrics(), DustinExperiment()],
         profile=profile,
     )
 
