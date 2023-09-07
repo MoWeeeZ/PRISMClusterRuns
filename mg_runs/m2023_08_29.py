@@ -6,12 +6,10 @@ import tree_utils
 
 import x_xy
 from neural_networks.logging import Logger, NeptuneLogger
-from neural_networks.main.neural_networks.rnno.training_loop_callbacks import (
-    DustinExperiment,
-)
 from neural_networks.rnno import dustin_exp_xml, rnno_v2, train
 from neural_networks.rnno.train import AuxInfo
 from neural_networks.rnno.training_loop import TrainingLoopCallback
+from neural_networks.rnno.training_loop_callbacks import DustinExperiment
 
 three_seg_seg2 = r"""
 <x_xy model="three_seg_seg2">
