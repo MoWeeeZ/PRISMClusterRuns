@@ -102,7 +102,7 @@ class LogLossWeightMetrics(TrainingLoopCallback):
         return n
 
     @staticmethod
-    def error_perc(error_tree):
+    def error_percs(error_tree):
         error_percs = {}
 
         for perc in [50, 90, 95, 99]:
