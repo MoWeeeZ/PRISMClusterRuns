@@ -151,7 +151,7 @@ class LogLossWeightMetrics(TrainingLoopCallback):
         error_trees = info.error_trees
         weighted_error_trees = info.weighted_error_trees
 
-        percentile_top_ns = LogLossWeightMetrics.error_percentiles(error_trees)
+        percentile_top_ns = LogLossWeightMetrics.top_n_percentiles(error_trees)
 
         mean_loss, loss_percentiles = LogLossWeightMetrics.error_percentiles(
             error_trees
