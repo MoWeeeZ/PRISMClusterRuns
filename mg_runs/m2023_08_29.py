@@ -72,9 +72,7 @@ def finalize_fn_imu_data(key, q, x, sys):
     X = {}
     for imu, seg in imu_seg_attachment.items():
         key, consume = jax.random.split(key)
-        X[seg] = x_xy.algorithms.imu(
-            x.take(sys.name_to_idx(imu), 1), sys.gravity, sys.dt, consume, True
-        )
+        X[seg] = x_xy.algorithms.imu(x.take(sys.name_to_idx(imu), 1), sys.gravity, sys.dt, consume, True)
     return X
 
 
@@ -111,9 +109,7 @@ class LogLossWeightMetrics(TrainingLoopCallback):
         error_percs = {}
 
         for q in LogLossWeightMetrics.percentiles:
-            tree = jax.tree_map(
-                lambda a: LogLossWeightMetrics.top_n(a, q / 100), error_trees
-            )
+            tree = jax.tree_map(lambda a: LogLossWeightMetrics.top_n(a, q / 100), error_trees)
 
             leafs, _ = jax.tree_util.tree_flatten(tree)
 
@@ -153,9 +149,7 @@ class LogLossWeightMetrics(TrainingLoopCallback):
 
         percentile_top_ns = LogLossWeightMetrics.top_n_percentiles(error_trees)
 
-        mean_loss, loss_percentiles = LogLossWeightMetrics.error_percentiles(
-            error_trees
-        )
+        mean_loss, loss_percentiles = LogLossWeightMetrics.error_percentiles(error_trees)
 
         (
             weighted_mean_loss,
@@ -171,9 +165,7 @@ class LogLossWeightMetrics(TrainingLoopCallback):
             logger.log_key_value("softmax/weighted_mean_error", weighted_mean_loss)
 
             for q, loss_percentile in weighted_loss_percentiles.items():
-                logger.log_key_value(
-                    f"softmax/weighted_loss_percentile{q}", loss_percentile
-                )
+                logger.log_key_value(f"softmax/weighted_loss_percentile{q}", loss_percentile)
 
             for q, (mean, std) in percentile_top_ns.items():
                 logger.log_key_value(f"softmax/top{q}_mean", mean)
@@ -190,9 +182,7 @@ def run(
     profile: bool = False,
 ):
     sys = x_xy.io.load_sys_from_str(three_seg_seg2)
-    config = x_xy.algorithms.RCMG_Config(
-        t_min=0.05, t_max=0.3, dang_min=0.1, dang_max=3.0, dpos_max=0.3
-    )
+    config = x_xy.algorithms.RCMG_Config(t_min=0.05, t_max=0.3, dang_min=0.1, dang_max=3.0, dpos_max=0.3)
     gen = x_xy.algorithms.build_generator(sys, config, setup_fn_seg2, finalize_fn)
     gen = x_xy.algorithms.batch_generator(gen, batch_size)
 
@@ -207,7 +197,7 @@ def run(
     if not debug:
         neptune_logger = NeptuneLogger()
 
-        neptune_logger.run["sys/tags"].add(["softmax_3"])
+        neptune_logger.run["sys/tags"].add(["softmax_3_unnormalised"])
         neptune_logger.run["seed"] = seed
 
         neptune_logger.run["beta"] = beta or "None"
